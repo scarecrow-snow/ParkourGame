@@ -1,0 +1,51 @@
+-- xlua.utilをrequireする
+local util = require 'xlua.util'
+
+-- コルーチンを開始する関数
+function startCoroutine(routine)
+    return csStartCoroutine(util.cs_generator(routine))
+end
+
+-- コルーチンを停止する関数
+function stopCoroutine(coroutine)
+    csStopCoroutine(coroutine)
+end
+
+function routine()
+    CS.LuaScriptManager.SetText("Start")
+    -- C#側のルーチンを呼びだす
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    CS.LuaScriptManager.SetText("あ")
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    CS.LuaScriptManager.SetText("い")
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    CS.LuaScriptManager.SetText("う")
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    CS.LuaScriptManager.SetText("え")
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    CS.LuaScriptManager.SetText("お")
+    coroutine.yield(CS.LuaScriptManager.WaitClicked())
+    
+    CS.LuaScriptManager.SetText("End")
+end
+
+function start()
+    print("lua start...")
+
+    CS.LuaScriptManager.SetText("test")
+
+    -- コルーチン開始
+    local coroutine = startCoroutine(routine)
+
+end
+
+function update()
+    -- print("lua update...")
+
+end
+
+function ondestroy()
+    print("lua ondestroy...")
+
+end
+
