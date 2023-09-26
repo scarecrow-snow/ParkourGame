@@ -16,10 +16,11 @@ public class EnvironmentChecker : MonoBehaviour
 
         var rayOrigin = transform.position + rayOffset;
         
+        // 前方に障害物が存在するか
         hitData.hitFound = Physics.Raycast(rayOrigin, transform.forward, out hitData.hitInfo, rayLength, obstacleLayer);
-
         Debug.DrawRay(rayOrigin, transform.forward * rayLength, (hitData.hitFound) ? Color.red : Color.green);
 
+        // 障害物が存在した場合に高さを取得する
         if(hitData.hitFound)
         {
             var heightOrigin = hitData.hitInfo.point + Vector3.up * heightRayLength;
