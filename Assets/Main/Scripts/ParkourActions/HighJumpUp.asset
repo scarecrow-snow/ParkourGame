@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: HighJumpUp
   m_EditorClassIdentifier: 
   animationName: HighJumpUp
-  minimumHeight: 0.5
+  minimumHeight: 0.6
   maximumHeight: 1.5
   lookAtObstacle: 1
+  allowTargetMatching: 1
+  compareBodyPart: 3
+  compareStartTime: 0.19
+  compareEndTime: 0.97

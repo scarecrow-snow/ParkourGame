@@ -57,6 +57,11 @@ public class ParkourController : MonoBehaviour
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, action.RequireRotation, playerScript.rotSpeed * Time.deltaTime);
             }
 
+            if(action.AllowTargetMatching)
+            {
+                CompareTarget(action);
+            }
+
             yield return null;
         }
         
@@ -64,6 +69,11 @@ public class ParkourController : MonoBehaviour
         playerInAction = false;
     }
     
+    void CompareTarget(NewParkourAction action)
+    {
+        animator.MatchTarget(action.ComparePosition, transform.rotation, action.CompareBodyPart,
+            new MatchTargetWeightMask(new Vector3(0, 1, 0), 0), action.CompareStartTime, action.CompareEndTime);
+    }
     /*
     async UniTaskVoid PerformParkour(NewParkourAction action)
     {
