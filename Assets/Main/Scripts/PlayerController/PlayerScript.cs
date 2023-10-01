@@ -1,18 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
     [Header("Player Movement")]
     public float movementSpeed = 5f;
-
     public MainCameraController MCC;
-
+    public EnvironmentChecker environmentChecker;
     public float rotSpeed = 600f;
     Quaternion requiredRotation;
     bool playerControl = true;
+    public bool playerInAction {get; private set;}
 
     [Header("Player Animator")]
     public Animator animator;
@@ -23,8 +24,12 @@ public class PlayerScript : MonoBehaviour
     public Vector3 surfaceChakeOffset;
     public LayerMask surfaceLayer;
     bool onSurface;
+    public bool playerOnLedge {get; set;}
+    public LedgeInfo LedgeInfo {get; set;}
     [SerializeField] float fallingSpeed;
     [SerializeField] Vector3 moveDir;
+    [SerializeField] Vector3 requiredMoveDir; 
+    Vector3 velocity;
 
 
     void Update()
@@ -33,20 +38,39 @@ public class PlayerScript : MonoBehaviour
 
         if(!playerControl) return;
 
+        velocity = Vector3.zero;
+
         if(onSurface)
         {
             fallingSpeed = 0f;
+            velocity = moveDir * movementSpeed;
+
+            playerOnLedge = environmentChecker.CheckLedge(moveDir, out LedgeInfo ledgeInfo);
+
+            if(playerOnLedge)
+            {
+                LedgeInfo = ledgeInfo;
+                PlayerLedgeMovement();
+                
+                Debug.Log("Player is on ledge");
+            }
+
+            animator.SetFloat("movementValue", velocity.magnitude / movementSpeed, 0.2f, Time.deltaTime);
         }
         else
         {
             fallingSpeed += Physics.gravity.y * Time.deltaTime;
+
+            velocity = transform.forward * movementSpeed / 2;
         }
 
-        var velocity = moveDir * movementSpeed;
+        
         velocity.y = fallingSpeed;
 
         
         SurfaceCheck();
+        
+        animator.SetBool("onSurface" , onSurface);
         Debug.Log("Player on Surface = " + onSurface);
     }
 
@@ -58,24 +82,28 @@ public class PlayerScript : MonoBehaviour
 
         float movementAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
         
-        var movementInput = (new Vector3(horizontal, 0, vertical)).normalized;
+        var movementInput = new Vector3(horizontal, 0, vertical).normalized;
 
-        var movementDirection = MCC.flatRotation * movementInput;
+        // 入力とカメラの向きからプレイヤーの向きを算出
+        requiredMoveDir = MCC.flatRotation * movementInput;
 
-        CC.Move(movementDirection * movementSpeed * Time.deltaTime);
+
+        // プレイヤーの移動
+        CC.Move(velocity * Time.deltaTime);
             
-        // 移動の値を更新
-        if(movementAmount > 0)
+        // プレイヤーの回転角度を算出
+        if(movementAmount > 0 && moveDir.magnitude > 0.2f)
         {
-            requiredRotation = Quaternion.LookRotation(movementDirection);
+            requiredRotation = Quaternion.LookRotation(moveDir);
         }
         
-        movementDirection = moveDir;
+        moveDir = requiredMoveDir;
 
+        // プレイヤーを回転
         transform.rotation = Quaternion.RotateTowards(transform.rotation, requiredRotation, rotSpeed * Time.deltaTime);
 
        
-        // Animation
+        // locomotion用のアニメーションパラメータ
         animator.SetFloat("movementValue", movementAmount, 0.2f, Time.deltaTime);
     }
 
@@ -84,12 +112,76 @@ public class PlayerScript : MonoBehaviour
         onSurface = Physics.CheckSphere(transform.TransformPoint(surfaceChakeOffset), surfaceCheckRadius, surfaceLayer);
     }
 
+     /// <summary>
+    /// 端にいる場合に進行方向との角度が90度未満の場合は移動できないようにする
+    /// </summary>
+    void PlayerLedgeMovement()
+    {
+        float angle = Vector3.Angle(LedgeInfo.surfaceHit.normal, requiredMoveDir);
+
+        if(angle < 90)
+        {
+            velocity = Vector3.zero;
+            moveDir = Vector3.zero;
+            
+        }
+    }
+
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(transform.TransformPoint(surfaceChakeOffset), surfaceCheckRadius);
     }
 
+    public IEnumerator PerformAction(string AnimationName, CompareTargetParameter ctp, Quaternion RequireRotation,
+     bool LookAtObstacle = false, float ParkourActionDelay = 0f)
+    {
+        playerInAction = true;
+        
+
+
+        animator.CrossFade(AnimationName, 0.2f);
+        yield return null;
+
+        var animationState = animator.GetNextAnimatorStateInfo(0);
+        if (!animationState.IsName(AnimationName))
+            Debug.Log("Animation Name is Incorrect");
+
+        float timerCounter = 0f;
+        while (timerCounter <= animationState.length)
+        {
+            timerCounter += Time.deltaTime;
+
+            if (LookAtObstacle)
+            {
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, RequireRotation, rotSpeed * Time.deltaTime);
+            }
+
+            if (ctp != null)
+            {
+                CompareTarget(ctp);
+            }
+
+            if (animator.IsInTransition(0) && timerCounter > 0.5f)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(ParkourActionDelay);
+
+        
+        playerInAction = false;
+    }
+
+    void CompareTarget(CompareTargetParameter compareTargetParameter)
+    {
+        animator.MatchTarget(compareTargetParameter.position, transform.rotation, compareTargetParameter.bodyPart,
+            new MatchTargetWeightMask(compareTargetParameter.positionWeight, 0), compareTargetParameter.startTime, compareTargetParameter.endTime);
+    }
 
     public void SetControl(bool hasControl)
     {
@@ -103,4 +195,20 @@ public class PlayerScript : MonoBehaviour
         }
 
     }
+
+    public bool HasPlayerControl
+    {
+        get => playerControl;
+        set => playerControl = value;
+    }
+}
+
+public class CompareTargetParameter
+{
+    public Vector3 position;
+    public AvatarTarget bodyPart;
+    public Vector3 positionWeight;
+    public float startTime;
+    public float endTime;
+
 }

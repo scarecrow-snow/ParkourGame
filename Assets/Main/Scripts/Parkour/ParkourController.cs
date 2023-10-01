@@ -7,16 +7,17 @@ using UnityEngine;
 public class ParkourController : MonoBehaviour
 {
     public EnvironmentChecker environmentChecker;
-    bool playerInAction;
+    
     public Animator animator;
     public PlayerScript playerScript;
+    [SerializeField] NewParkourAction jumpDownParkourAction;
 
     [Header("Parkour Action Area")]
     public List<NewParkourAction> newParkourAction;
 
     void Update()
     {
-        if (Input.GetButton("Jump") && !playerInAction)
+        if (Input.GetButton("Jump") && !playerScript.playerInAction)
         {
             var hitData = environmentChecker.CheckObstacle();
 
@@ -33,73 +34,47 @@ public class ParkourController : MonoBehaviour
                 }
             }
         }
+
+        if (playerScript.playerOnLedge && !playerScript.playerInAction && Input.GetButtonDown("Jump"))
+        {
+            if(playerScript.LedgeInfo.angle <= 50)
+            {
+                playerScript.playerOnLedge = false;
+                StartCoroutine(PerformParkourAction(jumpDownParkourAction));
+            }
+            
+            
+        }
+
     }
     IEnumerator PerformParkourAction(NewParkourAction action)
     {
-        playerInAction = true;
         playerScript.SetControl(false);
 
-
-        animator.CrossFade(action.AnimationName, 0.2f);
-        yield return null;
-
-        var animationState = animator.GetNextAnimatorStateInfo(0);
-        if(!animationState.IsName(action.AnimationName))
-            Debug.Log("Animation Name is Incorrect");
-
-        float timerCounter = 0f;
-        while(timerCounter <= animationState.length)
+        CompareTargetParameter compareTargetParameter = null;
+        if(action.AllowTargetMatching)
         {
-            timerCounter += Time.deltaTime;
-
-            if(action.LookAtObstacle)
+            compareTargetParameter = new CompareTargetParameter()
             {
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, action.RequireRotation, playerScript.rotSpeed * Time.deltaTime);
-            }
-
-            if(action.AllowTargetMatching)
-            {
-                CompareTarget(action);
-            }
-
-            yield return null;
+                position = action.ComparePosition,
+                bodyPart = action.CompareBodyPart,
+                positionWeight = action.ComparePositionWeight,
+                startTime = action.CompareStartTime,
+                endTime = action.CompareEndTime
+            };
+            
         }
-        
+
+        yield return playerScript.PerformAction(action.AnimationName, compareTargetParameter, action.RequireRotation, action.LookAtObstacle, action.ParkourActionDelay);
+       
         playerScript.SetControl(true);
-        playerInAction = false;
     }
-    
+
     void CompareTarget(NewParkourAction action)
     {
         animator.MatchTarget(action.ComparePosition, transform.rotation, action.CompareBodyPart,
-            new MatchTargetWeightMask(new Vector3(0, 1, 0), 0), action.CompareStartTime, action.CompareEndTime);
+            new MatchTargetWeightMask(action.ComparePositionWeight, 0), action.CompareStartTime, action.CompareEndTime);
     }
-    /*
-    async UniTaskVoid PerformParkour(NewParkourAction action)
-    {
-        playerInAction = true;
-        playerScript.SetControl(false);
-        animator.CrossFade(action.AnimationName, 0.2f);
-        await UniTask.Yield();
-
-        var animationState = animator.GetNextAnimatorStateInfo(0);
-        if(!animationState.IsName(action.AnimationName))
-            Debug.Log("Animation Name is Incorrect");
-
-        float timerCounter = 0f;
-        while(timerCounter <= animationState.length)
-        {
-            timerCounter += Time.deltaTime;
-            await UniTask.Yield();
-        }
-
-        playerScript.SetControl(true);
-        playerInAction = false;
-    }
-    */
-    
-
-
 
 }
 
