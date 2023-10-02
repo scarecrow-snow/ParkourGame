@@ -13,7 +13,10 @@ public class EnvironmentChecker : MonoBehaviour
     [SerializeField] float ledgeRayLength = 11f;
     [SerializeField] float ledgeRayHeightThreshold = 0.76f;
 
-
+    [Header("Check Climbing point")]
+    [SerializeField] float ClimbingRayLength = 1.6f;
+    [SerializeField] LayerMask ClimbingLayer;
+    public int numberofRays = 12;
     /// <summary>
     /// 前方にパルクールアクション可能なオブジェクトが存在するかをチェックする
     /// </summary>
@@ -75,6 +78,29 @@ public class EnvironmentChecker : MonoBehaviour
                 }
             }
 
+        }
+
+        return false;
+    }
+
+    public bool CheckClimbing(Vector3 climbDirection, out RaycastHit climbInfo)
+    {
+        climbInfo = new RaycastHit();
+
+        if(climbDirection == Vector3.zero) return false;
+
+        var climbOrigin = transform.position + Vector3.up * 1.5f;
+        var climbOffset = new Vector3(0, 0.19f, 0);
+
+        for(int i = 0; i < numberofRays; i++)
+        {
+            Debug.DrawRay(climbOrigin + climbOffset * i, climbDirection, Color.red);
+
+            if(Physics.Raycast(climbOrigin + climbOffset * i, climbDirection, out RaycastHit hit, ClimbingRayLength, ClimbingLayer))
+            {
+                climbInfo = hit;
+                return true;
+            }
         }
 
         return false;
