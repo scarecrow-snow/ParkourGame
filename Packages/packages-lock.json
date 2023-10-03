@@ -258,6 +258,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "dev.omusubi.objectrenamer": {
+      "version": "https://github.com/omsb/ObjectRenamer.git?path=Assets/ObjectRenamer",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "0b7139e52332dc7614c709f1fb839314734ee723"
+    },
     "jp.hadashikick.vcontainer": {
       "version": "1.13.2",
       "depth": 0,

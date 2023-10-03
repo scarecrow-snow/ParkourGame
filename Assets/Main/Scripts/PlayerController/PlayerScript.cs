@@ -8,6 +8,7 @@ public class PlayerScript : MonoBehaviour
 {
     [Header("Player Movement")]
     public float movementSpeed = 5f;
+    public float movementAmount;
     public MainCameraController MCC;
     public EnvironmentChecker environmentChecker;
     public float rotSpeed = 600f;
@@ -21,7 +22,7 @@ public class PlayerScript : MonoBehaviour
     [Header("Player Collision & Gravity")]
     public CharacterController CC;
     public float surfaceCheckRadius = 0.3f;
-    public Vector3 surfaceChakeOffset;
+    public Vector3 surfaceCheckeOffset;
     public LayerMask surfaceLayer;
     bool onSurface;
     public bool playerOnLedge {get; set;}
@@ -36,12 +37,9 @@ public class PlayerScript : MonoBehaviour
 
     void Update()
     {
-        PlayerMovement();
-
         if(!playerControl) return;
 
         if(playerHanging) return;
-        
 
         velocity = Vector3.zero;
 
@@ -72,6 +70,9 @@ public class PlayerScript : MonoBehaviour
         
         velocity.y = fallingSpeed;
 
+        PlayerMovement();
+
+        PlayerRotation();
         
         SurfaceCheck();
         
@@ -85,17 +86,22 @@ public class PlayerScript : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        float movementAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
-        
         var movementInput = new Vector3(horizontal, 0, vertical).normalized;
+
+        movementAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
 
         // 入力とカメラの向きからプレイヤーの向きを算出
         requiredMoveDir = MCC.flatRotation * movementInput;
 
-
         // プレイヤーの移動
         CC.Move(velocity * Time.deltaTime);
-            
+       
+        // locomotion用のアニメーションパラメータ
+        animator.SetFloat("movementValue", movementAmount, 0.2f, Time.deltaTime);
+    }
+
+    void PlayerRotation()
+    {
         // プレイヤーの回転角度を算出
         if(movementAmount > 0 && moveDir.magnitude > 0.2f)
         {
@@ -107,14 +113,11 @@ public class PlayerScript : MonoBehaviour
         // プレイヤーを回転
         transform.rotation = Quaternion.RotateTowards(transform.rotation, requiredRotation, rotSpeed * Time.deltaTime);
 
-       
-        // locomotion用のアニメーションパラメータ
-        animator.SetFloat("movementValue", movementAmount, 0.2f, Time.deltaTime);
     }
 
     void SurfaceCheck()
     {
-        onSurface = Physics.CheckSphere(transform.TransformPoint(surfaceChakeOffset), surfaceCheckRadius, surfaceLayer);
+        onSurface = Physics.CheckSphere(transform.TransformPoint(surfaceCheckeOffset), surfaceCheckRadius, surfaceLayer);
     }
 
      /// <summary>
@@ -136,7 +139,7 @@ public class PlayerScript : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(transform.TransformPoint(surfaceChakeOffset), surfaceCheckRadius);
+        Gizmos.DrawSphere(transform.TransformPoint(surfaceCheckeOffset), surfaceCheckRadius);
     }
 
     public IEnumerator PerformAction(string AnimationName, CompareTargetParameter ctp, Quaternion RequireRotation,
@@ -144,9 +147,7 @@ public class PlayerScript : MonoBehaviour
     {
         playerInAction = true;
         
-
-
-        animator.CrossFade(AnimationName, 0.2f);
+        animator.CrossFadeInFixedTime(AnimationName, 0.2f);
         yield return null;
 
         var animationState = animator.GetNextAnimatorStateInfo(0);
