@@ -27,6 +27,8 @@ public class ClimbingPoint : MonoBehaviour
             isPointTwoWay = isPointTwoWay
         };
 
+
+        // 重複したオブジェクトを追加しないようにする
         if(!neighbours.Contains(neighbour))
         {
             neighbours.Add(neighbour);

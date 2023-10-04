@@ -7,7 +7,7 @@ public class ClimbingController : MonoBehaviour
     EnvironmentChecker ec;
     PlayerScript ps;
     
-    ClimbingPoint currentClimbPoint;
+    [SerializeField] ClimbingPoint currentClimbPoint;
 
 
     void Awake()
@@ -37,6 +37,11 @@ public class ClimbingController : MonoBehaviour
         }
         else
         {
+            if(Input.GetButton("Leave"))
+            {
+                StartCoroutine(JumpFromWall());
+                return;
+            }
             // Ledge to Ledge ParkourAction
 
             float horizontal = Mathf.Round(Input.GetAxisRaw("Horizontal"));
@@ -75,21 +80,20 @@ public class ClimbingController : MonoBehaviour
                 
                 }
 
-                return;
+                
             }
-            
             // シミーで移動
-            if(neighbour.connectionType == ConnectionType.Move)
+            else if(neighbour.connectionType == ConnectionType.Move)
             {
                 currentClimbPoint = neighbour.climbingPoint;
 
                 if(neighbour.pointDirection.x == 1)
                 {
-                    StartCoroutine(ClimbToLedge("ShimmyRight", currentClimbPoint.transform, 0f, 0.30f));
+                    StartCoroutine(ClimbToLedge("ShimmyRight", currentClimbPoint.transform, 0f, 0.30f, playerHandOffset: new Vector3(0.16f, 0.02f, 0.33f)));
                 }
                 else if(neighbour.pointDirection.x == -1)
                 {
-                    StartCoroutine(ClimbToLedge("ShimmyLeft", currentClimbPoint.transform, 0f, 0.30f, AvatarTarget.LeftHand));
+                    StartCoroutine(ClimbToLedge("ShimmyLeft", currentClimbPoint.transform, 0f, 0.30f, AvatarTarget.LeftHand, playerHandOffset: new Vector3(0.16f, 0.02f, 0.33f)));
                 }
             }
         }
@@ -124,6 +128,16 @@ public class ClimbingController : MonoBehaviour
         var handDirection = hand == AvatarTarget.RightHand ? ledge.right : -ledge.right;        
 
         return ledge.position + ledge.forward * offsetValue.x + Vector3.up * offsetValue.y - handDirection * offsetValue.z;
+    }
+
+    IEnumerator JumpFromWall()
+    {
+        ps.playerHanging = false;
+
+        yield return ps.PerformAction("JumpFromWall");
+
+        ps.SetControl(true);
+        ps.ResetRequiredRotation();
     }
 }
 

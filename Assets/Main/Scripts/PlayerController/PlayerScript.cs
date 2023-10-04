@@ -142,7 +142,7 @@ public class PlayerScript : MonoBehaviour
         Gizmos.DrawSphere(transform.TransformPoint(surfaceCheckeOffset), surfaceCheckRadius);
     }
 
-    public IEnumerator PerformAction(string AnimationName, CompareTargetParameter ctp, Quaternion RequireRotation,
+    public IEnumerator PerformAction(string AnimationName, CompareTargetParameter ctp = null, Quaternion RequireRotation = new Quaternion(),
      bool LookAtObstacle = false, float ParkourActionDelay = 0f)
     {
         playerInAction = true;
@@ -154,12 +154,16 @@ public class PlayerScript : MonoBehaviour
         if (!animationState.IsName(AnimationName))
             Debug.Log("Animation Name is Incorrect");
 
+
+        float rotateStartTime = ctp != null ? ctp.startTime : 0f;
         float timerCounter = 0f;
         while (timerCounter <= animationState.length)
         {
             timerCounter += Time.deltaTime;
 
-            if (LookAtObstacle)
+            float normalizedTimeCounter = timerCounter / animationState.length;
+
+            if (LookAtObstacle && normalizedTimeCounter > rotateStartTime)
             {
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, RequireRotation, rotSpeed * Time.deltaTime);
             }
@@ -200,6 +204,11 @@ public class PlayerScript : MonoBehaviour
             requiredRotation = transform.rotation;
         }
 
+    }
+
+    public void ResetRequiredRotation()
+    {
+        requiredRotation = transform.rotation;
     }
 
     public bool HasPlayerControl
