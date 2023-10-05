@@ -15,10 +15,20 @@ public class ParkourController : MonoBehaviour
     [Header("Parkour Action Area")]
     public List<NewParkourAction> newParkourAction;
 
+    // 連続でジャンプできないようにタイマーで制御する
+    private float JumpTimer;
+
+    void Start()
+    {
+        JumpTimer = Time.time;
+    }
+
     void Update()
     {
+        if(playerScript.playerInAction || playerScript.playerHanging) return;
 
-        if (Input.GetButton("Jump") && !playerScript.playerInAction && !playerScript.playerHanging)
+
+        if(Input.GetButton("Jump"))
         {
             var hitData = environmentChecker.CheckObstacle();
 
@@ -30,21 +40,21 @@ public class ParkourController : MonoBehaviour
                     {
                         // perform parkour action
                         StartCoroutine(PerformParkourAction(action));
-                        break;
+                        return;
                     }
                 }
             }
         }
 
-        if (playerScript.playerOnLedge && !playerScript.playerInAction && Input.GetButtonDown("Jump"))
+        if (playerScript.playerOnLedge && Input.GetButtonDown("Jump"))
         {
-            if(playerScript.LedgeInfo.angle <= 50)
+            if(playerScript.LedgeInfo.angle <= 50 && Time.time - JumpTimer > 2f)
             {
                 playerScript.playerOnLedge = false;
+                JumpTimer = Time.time;
                 StartCoroutine(PerformParkourAction(jumpDownParkourAction));
+                return;
             }
-            
-            
         }
 
     }
@@ -67,14 +77,8 @@ public class ParkourController : MonoBehaviour
         }
 
         yield return playerScript.PerformAction(action.AnimationName, compareTargetParameter, action.RequireRotation, action.LookAtObstacle, action.ParkourActionDelay);
-       
-        playerScript.SetControl(true);
-    }
 
-    void CompareTarget(NewParkourAction action)
-    {
-        animator.MatchTarget(action.ComparePosition, transform.rotation, action.CompareBodyPart,
-            new MatchTargetWeightMask(action.ComparePositionWeight, 0), action.CompareStartTime, action.CompareEndTime);
+        playerScript.SetControl(true);
     }
 
 }

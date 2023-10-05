@@ -24,7 +24,7 @@ public class PlayerScript : MonoBehaviour
     public float surfaceCheckRadius = 0.3f;
     public Vector3 surfaceCheckeOffset;
     public LayerMask surfaceLayer;
-    bool onSurface;
+    public bool onSurface;
     public bool playerOnLedge {get; set;}
     public bool playerHanging {get; set;}
 
@@ -73,9 +73,9 @@ public class PlayerScript : MonoBehaviour
         PlayerMovement();
 
         PlayerRotation();
-        
+
         SurfaceCheck();
-        
+
         animator.SetBool("onSurface" , onSurface);
         Debug.Log("Player on Surface = " + onSurface);
     }
@@ -119,6 +119,8 @@ public class PlayerScript : MonoBehaviour
     {
         onSurface = Physics.CheckSphere(transform.TransformPoint(surfaceCheckeOffset), surfaceCheckRadius, surfaceLayer);
     }
+
+    
 
      /// <summary>
     /// 端にいる場合に進行方向との角度が90度未満の場合は移動できないようにする
@@ -222,7 +224,7 @@ public class PlayerScript : MonoBehaviour
         set => playerControl = value;
     }
 
-    
+   
 }
 
 public class CompareTargetParameter
