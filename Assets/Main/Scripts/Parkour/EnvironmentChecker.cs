@@ -83,20 +83,27 @@ public class EnvironmentChecker : MonoBehaviour
         return false;
     }
 
+
+    /// <summary>
+    /// クライミング可能かを検出する
+    /// </summary>
+    /// <param name="climbDirection"></param>
+    /// <param name="climbInfo"></param>
+    /// <returns></returns>
     public bool CheckClimbing(Vector3 climbDirection, out RaycastHit climbInfo)
     {
         climbInfo = new RaycastHit();
 
-        if(climbDirection == Vector3.zero) return false;
+        if (climbDirection == Vector3.zero) return false;
 
         var climbOrigin = transform.position + Vector3.up * 1.5f;
         var climbOffset = new Vector3(0, 0.19f, 0);
 
-        for(int i = 0; i < numberofRays; i++)
+        for (int i = 0; i < numberofRays; i++)
         {
             Debug.DrawRay(climbOrigin + climbOffset * i, climbDirection, Color.red);
 
-            if(Physics.Raycast(climbOrigin + climbOffset * i, climbDirection, out RaycastHit hit, ClimbingRayLength, ClimbingLayer))
+            if (Physics.Raycast(climbOrigin + climbOffset * i, climbDirection, out RaycastHit hit, ClimbingRayLength, ClimbingLayer))
             {
                 climbInfo = hit;
                 return true;
@@ -105,19 +112,34 @@ public class EnvironmentChecker : MonoBehaviour
 
         return false;
     }
+
+    public bool CheckDropClimbPoint(out RaycastHit DropHit)
+    {
+        DropHit = new RaycastHit();
+
+        var origin = transform.position + Vector3.down * 0.1f + transform.forward * 2f;
+
+        if (Physics.Raycast(origin, -transform.forward, out RaycastHit hit, 3f, ClimbingLayer))
+        {
+            DropHit = hit;
+            return true;
+        }
+        
+        return false;
+    }
 }
 
-public struct obstacleInfo
-{
-    public bool hitFound;
-    public bool heightHitFound;
-    public RaycastHit hitInfo;
-    public RaycastHit heightInfo;
-}
+    public struct obstacleInfo
+    {
+        public bool hitFound;
+        public bool heightHitFound;
+        public RaycastHit hitInfo;
+        public RaycastHit heightInfo;
+    }
 
-public struct LedgeInfo
-{
-    public float angle;
-    public float height;
-    public RaycastHit surfaceHit;
-}
+    public struct LedgeInfo
+    {
+        public float angle;
+        public float height;
+        public RaycastHit surfaceHit;
+    }

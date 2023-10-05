@@ -206,6 +206,11 @@ public class PlayerScript : MonoBehaviour
 
     }
 
+    public void EnableCC(bool enabled)
+    {
+        CC.enabled = enabled;
+    }
+
     public void ResetRequiredRotation()
     {
         requiredRotation = transform.rotation;

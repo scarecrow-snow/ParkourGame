@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Build.Player;
 using UnityEngine;
 
 public class ClimbingController : MonoBehaviour
@@ -18,7 +19,6 @@ public class ClimbingController : MonoBehaviour
 
     void Update()
     {
-
         if(ps.playerInAction) return;
 
         if (!ps.playerHanging)
@@ -32,18 +32,34 @@ public class ClimbingController : MonoBehaviour
                     ps.SetControl(false);
 
                     StartCoroutine(ClimbToLedge("IdleToClimb", climbInfo.transform, 0.40f, 54f, playerHandOffset: new Vector3(-0.19f, -0.2f, 0.3f)));
+                    return;
+                }
+            }
+
+            if(Input.GetButton("Leave"))
+            {
+                if(ec.CheckDropClimbPoint(out RaycastHit DropHit))
+                {
+                    currentClimbPoint =  GetNearestClimbingPoint(DropHit.transform, DropHit.point);
+                    if(currentClimbPoint != null)
+                    {
+                        ps.SetControl(false);
+                        StartCoroutine(ClimbToLedge("DropToFreehang", currentClimbPoint.transform, 0.41f, 0.54f, playerHandOffset: new Vector3(-0.13f, -0.27f, 0.55f)));
+                        return;
+                    }
                 }
             }
         }
         else
         {
+            // 壁からのジャンプ
             if(Input.GetButton("Leave"))
             {
                 StartCoroutine(JumpFromWall());
                 return;
             }
-            // Ledge to Ledge ParkourAction
-
+            
+            // 入力を受け取る
             float horizontal = Mathf.Round(Input.GetAxisRaw("Horizontal"));
             float vertical = Mathf.Round(Input.GetAxisRaw("Vertical"));
 
@@ -51,11 +67,23 @@ public class ClimbingController : MonoBehaviour
 
             if(ps.playerInAction || inputDirection == Vector2.zero) return;
 
+            // 登頂部へ登る
+            if(currentClimbPoint.mountPoint && Input.GetButton("Jump"))
+            {
+                if(inputDirection.y == 1)
+                {
+                    StartCoroutine(ClimbToTop());
+                    return;
+                }
+            }
+
+
+            // 接続しているneighbourへのクライミングジャンプでの移動または、シミーでの移動
             var neighbour = currentClimbPoint?.GetNeighbour(inputDirection);
 
             if(neighbour == null) return;
 
-            // クライミングで移動
+            // クライミングジャンプで移動
             if(neighbour.connectionType == ConnectionType.Jump && Input.GetButton("Jump"))
             {
                 currentClimbPoint = neighbour.climbingPoint;
@@ -136,8 +164,43 @@ public class ClimbingController : MonoBehaviour
 
         yield return ps.PerformAction("JumpFromWall");
 
-        ps.SetControl(true);
+        
         ps.ResetRequiredRotation();
+        ps.SetControl(true);
+    }
+
+    IEnumerator ClimbToTop()
+    {
+        ps.playerHanging = false;
+        yield return ps.PerformAction("ClimbToTop");
+        
+        ps.EnableCC(true);
+
+        yield return new WaitForSeconds(0.5f);
+
+        ps.ResetRequiredRotation();
+        ps.SetControl(true);
+    }
+
+    ClimbingPoint GetNearestClimbingPoint(Transform dropClimbPoint, Vector3 hitPoint)
+    {
+        var points = dropClimbPoint.GetComponentsInChildren<ClimbingPoint>();
+
+        ClimbingPoint nearestPoint = null;
+        float nearestPointDistance = Mathf.Infinity;
+
+        foreach(var point in points)
+        {
+            float distance = Vector3.Distance(point.transform.position, hitPoint);
+            if(distance < nearestPointDistance)
+            {
+                nearestPoint = point;
+                nearestPointDistance = distance;
+            }
+
+        }
+
+        return nearestPoint;
     }
 }
 
