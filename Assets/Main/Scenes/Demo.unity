@@ -925,7 +925,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 408376407}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -2.7999997, y: 2.0889077, z: 0.00000019073485}
+  m_LocalPosition: {x: -3.9999998, y: 1.835, z: -0.00000023841858}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1887,10 +1887,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 8276030855778169941, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
-      propertyPath: m_HorizontalAxis.Value
-      value: 90
-      objectReference: {fileID: 0}
     - target: {fileID: 8276030855967411704, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
       propertyPath: m_Name
       value: ThirdPersonCineMachine
@@ -1901,15 +1897,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8276030855967411706, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.7999997
+      value: -3.9999998
       objectReference: {fileID: 0}
     - target: {fileID: 8276030855967411706, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.0889077
+      value: 1.835
       objectReference: {fileID: 0}
     - target: {fileID: 8276030855967411706, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.00000019073485
+      value: -0.00000023841858
       objectReference: {fileID: 0}
     - target: {fileID: 8276030855967411706, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1947,14 +1943,6 @@ PrefabInstance:
       propertyPath: m_LookAt
       value: 
       objectReference: {fileID: 309027403}
-    - target: {fileID: 8276030855967411709, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
-      propertyPath: m_CollideAgainst.m_Bits
-      value: 439
-      objectReference: {fileID: 0}
-    - target: {fileID: 8276030855967411709, guid: 50218a68f2c7c3c4e89b0053974fd59a, type: 3}
-      propertyPath: m_MinimumDistanceFromTarget
-      value: 0.2
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
